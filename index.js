@@ -14,11 +14,15 @@ async function streamToString(
   stream
 ) {
   const chunks = [];
-  for await (const chunk of stream) {
-    chunks.push(Buffer.from(chunk));
-  }
-  const allData = Buffer.concat(chunks).toString("utf-8");
-  console.log("Consumed all the data: " + allData.length);
+  stream.on("data", chunk => chunks.push(Buffer.from(chunk)));
+  return new Promise((resolve, reject) => {
+    stream.on("end", () => {
+      const allData = Buffer.concat(chunks).toString("utf-8");
+      console.log("Consumed all the data: " + allData.length);
+      resolve(allData);
+    });
+    stream.on("error", reject);
+  })
 }
 
 
